@@ -10,7 +10,6 @@ export default function Home() {
   const [results, setResults] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
- 
   const [loading, setLoading] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);

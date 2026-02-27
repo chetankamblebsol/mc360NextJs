@@ -51,6 +51,28 @@ const tableLayouts = {
   job_last_run_date: ['my_row_id','LAST_RUN_DATE']
 };
 
+/* 🔥 SMART DISPLAY NAME RESOLVER */
+function resolveDisplayName(person){
+  if(!person) return "Details";
+
+  if(person.NAME) return person.NAME;
+
+  const fullName = [person.FIRST_NAME, person.LAST_NAME]
+    .filter(Boolean)
+    .join(" ");
+
+  if(fullName) return fullName;
+
+  return (
+    person.LAST_NAME ||
+    person.COMPANY_NAME ||
+    person.VESSEL_NAME ||
+    person.FILE_NAME ||
+    person.GROUP_ID ||
+    "Details"
+  );
+}
+
 export default function DetailsModal({
   table,
   id,
@@ -106,11 +128,8 @@ export default function DetailsModal({
   /* ===== LAYOUT ===== */
   const layout = tableLayouts[table] || Object.keys(person || {});
 
-  /* ===== DISPLAY NAME ===== */
-  const displayName =
-    person?.NAME || person?.FIRST_NAME
-      ? `${person?.FIRST_NAME || person?.NAME || ''} ${person?.LAST_NAME || ''}`
-      : person?.COMPANY_NAME || person?.VESSEL_NAME || person?.FILE_NAME || 'Details';
+  /* 🔥 FIXED DISPLAY NAME */
+  const displayName = resolveDisplayName(person);
 
   /* ===== CARD SELECTOR ===== */
   const renderCard = () => {
@@ -161,7 +180,8 @@ export default function DetailsModal({
             >
               <ChevronLeft size={18}/>
             </button>
- {/* NEXT */}
+
+            {/* NEXT */}
             <button
               onClick={onNext}
               disabled={!hasNext}
@@ -170,6 +190,7 @@ export default function DetailsModal({
             >
               <ChevronRight size={18}/>
             </button>
+
             {/* NAME */}
             <h2
               className="text-gray-900 min-h-[24px] text-xl font-bold truncate cursor-default max-w-[300px]"
@@ -179,8 +200,6 @@ export default function DetailsModal({
                 ? displayName.slice(0,20)+'...'
                 : displayName}
             </h2>
-
-           
 
           </div>
 

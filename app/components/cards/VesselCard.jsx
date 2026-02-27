@@ -1,14 +1,16 @@
-import SectionHeader from "./SectionHeader";
+"use client";
 
 export default function VesselCard({ person }) {
   return (
     <div className="space-y-6">
 
-      {/* ================= VESSEL SUMMARY ================= */}
-      <div className="border rounded-lg p-4 bg-gray-50">
-        <SectionHeader title="Vessel Summary" />
+      {/* ================= OVERVIEW ================= */}
+      <div className="border rounded-lg px-4 pb-4 bg-gray-50">
+        <h3 className="pb-2 border-b font-bold">
+          Vessel Overview
+        </h3>
 
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-2 gap-x-12 gap-y-4 pt-3 text-sm">
           <Field label="ID" value={person?.ID} />
           <Field label="DOC SR NO" value={person?.DOC_SRNO} />
           <Field label="VESSEL NAME" value={person?.VESSEL_NAME} />
@@ -18,44 +20,98 @@ export default function VesselCard({ person }) {
       </div>
 
       {/* ================= SANCTIONS INFORMATION ================= */}
-      <SectionHeader title="Sanctions Information" />
-      <Section>
-        <Field label="EU JOURNAL LINK" value={person?.EU_JOURNAL_LINK} />
+      <DividerTitle title="SANCTIONS INFORMATION" />
+
+      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm">
+        <LinkField label="EU JOURNAL LINK" value={person?.EU_JOURNAL_LINK} />
         <Field label="DATE OF APPLICATION" value={person?.DATE_OF_APPLICATION} />
-      </Section>
+      </div>
 
       {/* ================= METADATA ================= */}
-      <SectionHeader title="Metadata" />
-      <Section>
+      <DividerTitle title="METADATA" />
+
+      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm">
         <Field label="INSERTED ON" value={person?.INSERTED_ON} />
         <Field label="UPDATED ON" value={person?.UPDATED_ON} />
-      </Section>
+      </div>
 
     </div>
   );
 }
 
-/* ===================================================== */
-/* REUSABLE UI HELPERS */
-/* ===================================================== */
+/* ================= UI HELPERS ================= */
 
-function Section({ children }) {
+function DividerTitle({ title }) {
   return (
-    <div className="border rounded-lg p-4">
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        {children}
+    <div className="flex items-center gap-4 my-4">
+      <div className="flex-1 h-[1px] bg-blue-200"></div>
+      <h3 className="text-xs font-bold text-blue-500 tracking-wide">
+        {title}
+      </h3>
+      <div className="flex-1 h-[1px] bg-blue-200"></div>
+    </div>
+  );
+}
+
+/* 🔥 Field always shows — even when null */
+function Field({ label, value }) {
+
+  let displayValue = value;
+
+  if (
+    value === undefined ||
+    value === null ||
+    value === "" ||
+    value === "[NULL]"
+  ) {
+    displayValue = "NULL";
+  }
+
+  return (
+    <div>
+      <span className="text-gray-400 text-xs uppercase">
+        {label} :
+      </span>
+
+      <div className="text-gray-800 font-bold break-words">
+        {String(displayValue)}
       </div>
     </div>
   );
 }
 
-function Field({ label, value }) {
-  if (!value) return null;
+/* ⭐ Special field for clickable links */
+function LinkField({ label, value }) {
+
+  let displayValue = value;
+
+  if (
+    value === undefined ||
+    value === null ||
+    value === "" ||
+    value === "[NULL]"
+  ) {
+    displayValue = "NULL";
+  }
 
   return (
     <div>
-      <span className="text-gray-400 text-xs">{label}</span>
-      <div className="text-gray-800 break-words">{value}</div>
+      <span className="text-gray-400 text-xs uppercase">
+        {label} :
+      </span>
+
+      {displayValue === "NULL" ? (
+        <div className="text-gray-800 font-bold">NULL</div>
+      ) : (
+        <a
+          href={displayValue}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 font-bold break-all hover:underline"
+        >
+          {displayValue}
+        </a>
+      )}
     </div>
   );
 }
