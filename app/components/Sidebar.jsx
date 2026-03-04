@@ -2,28 +2,27 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Search, History } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Sidebar() {
   const [open, setOpen] = useState(true);
+  const pathname = usePathname();
 
   return (
     <aside
       className={`bg-white shadow flex flex-col transition-all duration-300 
       ${open ? 'w-64' : 'w-20'}`}
     >
-      {/* ================= HEADER ================= */}
+
       <div className="flex items-center justify-between p-4 border-b">
 
-        {/* LEFT SIDE (LOGO + TEXT) */}
         <div className={`flex items-center gap-2 ${open ? '' : 'justify-center w-full'}`}>
+          <img
+            src="/image/logo.png"
+            className="h-7 w-auto object-contain shrink-0"
+          />
 
-          {/* LOGO ALWAYS VISIBLE */}
-       <img
-  src="/image/logo.png"
-  className="h-7 w-auto object-contain shrink-0"
-/>
-
-          {/* TEXT ONLY WHEN OPEN */}
           {open && (
             <div>
               <p className="font-bold text-lg leading-none">MC360</p>
@@ -32,7 +31,6 @@ export default function Sidebar() {
           )}
         </div>
 
-        {/* TOGGLE BUTTON */}
         <button
           onClick={() => setOpen(!open)}
           className="text-gray-500 hover:text-black transition"
@@ -43,12 +41,46 @@ export default function Sidebar() {
       </div>
 
       {/* ================= NAVIGATION ================= */}
-      <nav className="p-3 space-y-2 text-sm">
+    {/* ================= NAVIGATION ================= */}
+<nav className="p-3 space-y-2 text-sm flex-1">
 
-        <NavItem open={open} label="Search" Icon={Search} active />
-        <NavItem open={open} label="History" Icon={History} />
+  <NavItem
+    open={open}
+    label="Search"
+    Icon={Search}
+    href="/"
+    isActive={pathname === '/'}
+  />
 
-      </nav>
+  <NavItem
+    open={open}
+    label="History"
+    Icon={History}
+    href="/history"
+    isActive={pathname.includes('history')}
+  />
+
+</nav>
+
+{/* ================== Footer ================== */}
+{/* ================== User ================== */}
+<div className='p-3 border-t flex items-center gap-6 justify-center'>
+  <img 
+    src='/image/user.png' 
+    className='h-7 w-7 rounded-full'
+  />
+
+  {open && (
+    <span className='text-sm text-gray-700 font-medium'>
+      Chetan Kamble
+    </span>
+  )}
+</div>
+
+{/* ================== Footer ================== */}
+<div className='p-4 border-t text-center text-xs text-gray-400'>
+  © 2026 MC360. All rights reserved.
+</div>
     </aside>
   );
 }
@@ -57,24 +89,22 @@ export default function Sidebar() {
 /* NAV ITEM COMPONENT */
 /* ========================= */
 
-function NavItem({ open, label, Icon, active }) {
+function NavItem({ open, label, Icon, isActive, href }) {
   return (
-    <a
-      href="#"
+    <Link
+      href={href}
       className={`flex items-center gap-3 px-3 py-2 rounded transition-all
-        ${active
+        ${isActive
           ? 'bg-blue-500 text-white'
           : 'text-gray-600 hover:bg-gray-100'}`}
     >
-      {/* ICON */}
       <Icon size={18} className="shrink-0" />
 
-      {/* LABEL ONLY WHEN OPEN */}
       {open && (
         <span className="whitespace-nowrap">
           {label}
         </span>
       )}
-    </a>
+    </Link>
   );
 }

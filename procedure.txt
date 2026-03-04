@@ -1,0 +1,111 @@
+DROP PROCEDURE IF EXISTS SearchAllTable;
+DELIMITER $$
+
+CREATE PROCEDURE SearchAllTable(
+  IN p_name TEXT,
+  IN p_type VARCHAR(255),
+  IN p_source VARCHAR(255),
+  IN p_limit INT,
+  IN p_offset INT
+)
+BEGIN
+
+DECLARE total_count INT;
+DECLARE search_len INT;
+DECLARE is_numeric BOOLEAN;
+
+SET search_len = CHAR_LENGTH(p_name);
+SET is_numeric = p_name REGEXP '^[0-9]+$';
+
+-- SHORT OR NUMERIC: PREFIX LIKE SEARCH (ALL COLUMNS)
+IF search_len < 3 OR is_numeric THEN
+
+  SELECT COUNT(*) INTO total_count
+  FROM sanctions_search_index
+  WHERE (
+    ID LIKE CONCAT(p_name, '%')
+    OR NAME LIKE CONCAT(p_name, '%')
+    OR search_text LIKE CONCAT(p_name, '%')
+    OR search_text LIKE CONCAT('% ', p_name, '%')
+  )
+  AND (p_type='' OR TYPE LIKE CONCAT('%',p_type,'%'))
+  AND (p_source='' OR SOURCE LIKE CONCAT('%',p_source,'%'));
+
+  SELECT 
+    NAME, TYPE, SOURCE, ID, DOB, NATIONALITY, tableName,
+    total_count AS TOTAL_COUNT,
+    score AS SCORE,
+    score AS MATCH_PERCENT,
+    CASE 
+      WHEN score >= 90 THEN 'High'
+      WHEN score >= 70 THEN 'Medium'
+      ELSE 'Low'
+    END AS MATCH_LEVEL
+  FROM (
+    SELECT 
+      NAME, TYPE, SOURCE, ID, DOB, NATIONALITY, tableName,
+      CASE
+        WHEN ID = p_name THEN 100
+        WHEN ID LIKE CONCAT(p_name, '%') THEN 95
+        WHEN NAME LIKE CONCAT(p_name, '%') THEN 90
+        WHEN search_text LIKE CONCAT(p_name, '%') THEN 85
+        WHEN NAME LIKE CONCAT('% ', p_name, '%') THEN 75
+        WHEN search_text LIKE CONCAT('% ', p_name, '%') THEN 70
+        ELSE 50
+      END AS score
+    FROM sanctions_search_index
+    WHERE (
+      ID LIKE CONCAT(p_name, '%')
+      OR NAME LIKE CONCAT(p_name, '%')
+      OR search_text LIKE CONCAT(p_name, '%')
+      OR search_text LIKE CONCAT('% ', p_name, '%')
+    )
+    AND (p_type='' OR TYPE LIKE CONCAT('%',p_type,'%'))
+    AND (p_source='' OR SOURCE LIKE CONCAT('%',p_source,'%'))
+  ) AS ranked
+  ORDER BY score DESC, NAME ASC
+  LIMIT p_limit OFFSET p_offset;
+
+-- FULLTEXT SEARCH (3+ CHARS WITH LETTERS)
+ELSE
+
+  SELECT COUNT(*) INTO total_count
+  FROM sanctions_search_index
+  WHERE MATCH(search_text) AGAINST(CONCAT(p_name, '*') IN BOOLEAN MODE)
+  AND (p_type='' OR TYPE LIKE CONCAT('%',p_type,'%'))
+  AND (p_source='' OR SOURCE LIKE CONCAT('%',p_source,'%'));
+
+  SELECT 
+    NAME, TYPE, SOURCE, ID, DOB, NATIONALITY, tableName,
+    total_count AS TOTAL_COUNT,
+    raw_score AS SCORE,
+    ROUND(
+      CASE 
+        WHEN raw_score >= 10 THEN 100
+        WHEN raw_score >= 5 THEN 90
+        WHEN raw_score >= 2 THEN 75
+        WHEN raw_score >= 1 THEN 60
+        ELSE 50
+      END, 2
+    ) AS MATCH_PERCENT,
+    CASE
+      WHEN raw_score >= 5 THEN 'High'
+      WHEN raw_score >= 2 THEN 'Medium'
+      ELSE 'Low'
+    END AS MATCH_LEVEL
+  FROM (
+    SELECT 
+      NAME, TYPE, SOURCE, ID, DOB, NATIONALITY, tableName,
+      MATCH(search_text) AGAINST(CONCAT(p_name, '*') IN BOOLEAN MODE) AS raw_score
+    FROM sanctions_search_index
+    WHERE MATCH(search_text) AGAINST(CONCAT(p_name, '*') IN BOOLEAN MODE)
+    AND (p_type='' OR TYPE LIKE CONCAT('%',p_type,'%'))
+    AND (p_source='' OR SOURCE LIKE CONCAT('%',p_source,'%'))
+  ) AS scored_results
+  ORDER BY raw_score DESC, NAME ASC
+  LIMIT p_limit OFFSET p_offset;
+
+END IF;
+
+END$$
+DELIMITER ;

@@ -28,7 +28,7 @@ export async function GET(request) {
   }
 
   try {
-    // CALL stored procedure
+   
     const [rows] = await db.query(
       "CALL SearchAllView(?,?,?,?,?)",
       [name, type, source, limit, offset]
