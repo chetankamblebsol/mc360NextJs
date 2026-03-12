@@ -1,47 +1,43 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { AlertTriangle } from "lucide-react";   // 👈 icon
-import SyncPanel from './SyncPanel';
 
 const Infobar = () => {
   const [dbCount, setDbCount] = useState(0);
-  const [showSync, setShowSync] = useState(false);
+  const [dbActive, setDbActive] = useState(false);
 
   useEffect(() => {
     fetch('/api/total-records')
       .then(r => r.json())
-      .then(data => setDbCount(data.totalRecords || 0));
+      .then(data => {
+        setDbCount(data.totalRecords || 0);
+        setDbActive(true);
+      })
+      .catch(() => setDbActive(false));
   }, []);
 
   return (
-    <>
-      <div className="h-14 bg-white border-b flex items-center justify-between px-6">
-
-        <div className="flex items-center gap-3 text-sm">
-          <span className="font-semibold text-gray-700">Search Module</span>
+    <div className="h-14 bg-white flex items-center justify-between px-6">
+      <div className="flex items-center gap-3 text-sm">
+        <span className="font-semibold text-gray-700">Search Module</span>
+        {dbActive ? (
           <span className="text-green-500 text-xs">●</span>
-
+        ) : (
+          <span className="text-red-500 text-xs">●</span>
+        )}
+        {dbActive ? (
           <span className="text-gray-500">
-            Database Active:
-            <span className='font-bold'>
+            Database Active : 
+            <span className='font-bold text-gray-700 ml-2 mr-1'>
               {dbCount >= 1000 ? (dbCount / 1000).toFixed(2) + 'K' : dbCount}
             </span> Records
           </span>
-        </div>
-
-        {/* SYNC BADGE */}
-        <div
-          onClick={() => setShowSync(true)}
-          className="cursor-pointer flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-500 text-sm hover:bg-orange-100 transition"
-        >
-          <AlertTriangle size={16}/>
-          Partial Sync • 1h 22m ago
-        </div>
-
+        ) : (
+          <span className="text-red-500">
+            Database Connection Failed
+          </span>
+        )}
       </div>
-
-      {showSync && <SyncPanel onClose={() => setShowSync(false)} />}
-    </>
+    </div>
   );
 };
 

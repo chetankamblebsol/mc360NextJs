@@ -47,21 +47,24 @@ const tableLayouts = {
     'EU_JOURNAL_LINK','DATE_OF_APPLICATION','INSERTED_ON','UPDATED_ON'
   ],
 
-  ofac_file_hashes: ['my_row_id','FILE_NAME','MD5_HASH'],
-  job_last_run_date: ['my_row_id','LAST_RUN_DATE']
+  ofac_file_hashes: ['FILE_NAME','MD5_HASH'],
+  job_last_run_date: ['LAST_RUN_DATE']
 };
 
 /* 🔥 SMART DISPLAY NAME RESOLVER */
-function resolveDisplayName(person){
-  if(!person) return "Details";
+function resolveDisplayName(person) {
+  if (!person) return "Details";
 
-  if(person.NAME) return person.NAME;
+  if (person.NAME) return person.NAME;
 
-  const fullName = [person.FIRST_NAME, person.LAST_NAME]
+  const fullName = [
+    person.FIRST_NAME || person.FIRSTNAME,
+    person.LAST_NAME || person.LASTNAME
+  ]
     .filter(Boolean)
     .join(" ");
 
-  if(fullName) return fullName;
+  if (fullName) return fullName;
 
   return (
     person.LAST_NAME ||
@@ -82,19 +85,28 @@ export default function DetailsModal({
   onPrev,
   hasNext,
   hasPrev
+
 }) {
 
   const [person, setPerson] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  
   /* ===== FETCH RECORD ===== */
   useEffect(() => {
+
+    setLoading(true);
+
     fetch(`/api/details?table=${table}&id=${id}`)
       .then(r => r.json())
       .then(data => {
-        setPerson(data.record);
+        setPerson(data?.record || null);
+        setLoading(false);
+      })
+      .catch(() => {
+        setPerson(null);
         setLoading(false);
       });
+
   }, [table, id]);
 
   /* ===== VALUE FORMATTER ===== */
@@ -128,8 +140,8 @@ export default function DetailsModal({
   /* ===== LAYOUT ===== */
   const layout = tableLayouts[table] || Object.keys(person || {});
 
-  /* 🔥 FIXED DISPLAY NAME */
-  const displayName = resolveDisplayName(person);
+  /* 🔥 SAFE DISPLAY NAME */
+  const displayName = resolveDisplayName(person || {});
 
   /* ===== CARD SELECTOR ===== */
   const renderCard = () => {
@@ -161,10 +173,10 @@ export default function DetailsModal({
   };
 
   return (
-    <div className="bg-white shadow-2xl w-[50%] max-h-[100vh] flex flex-col">
+    <div className="bg-white shadow-2xl w-full max-h-full  flex flex-col">
 
       {/* ===== HEADER ===== */}
-      <div className="flex justify-between items-center px-6 pl-1 py-4 border-b bg-gray-50">
+      <div className="flex justify-between items-center px-6 pl-1 py-4 border-b bg-gray-100">
 
         <div className='flex items-center justify-between w-full px-5'>
 
@@ -180,7 +192,7 @@ export default function DetailsModal({
             >
               <ChevronLeft size={18}/>
             </button>
-
+   
             {/* NEXT */}
             <button
               onClick={onNext}
@@ -190,7 +202,7 @@ export default function DetailsModal({
             >
               <ChevronRight size={18}/>
             </button>
-
+       <div className="h-6 w-[1.5px] ml-3 mr-3 bg-gray-300"></div>
             {/* NAME */}
             <h2
               className="text-gray-900 min-h-[24px] text-xl font-bold truncate cursor-default max-w-[300px]"

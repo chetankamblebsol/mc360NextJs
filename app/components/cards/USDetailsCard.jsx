@@ -1,8 +1,6 @@
 "use client";
 
 export default function USDetailsCard({ person }) {
-
-  /* ================= UNIVERSAL DATA EXTRACTION ================= */
   const ids = extractIds(person);
   const address = extractAddress(person);
   const program = extractProgram(person);
@@ -11,78 +9,115 @@ export default function USDetailsCard({ person }) {
   const citizenship = extractCitizenship(person);
   const birthPlace = extractBirthPlace(person);
 
+  const hasValue = (v) =>
+    v !== undefined &&
+    v !== null &&
+    v !== "" &&
+    v !== "[NULL]";
+
   return (
     <div className="space-y-6">
 
       {/* ================= OVERVIEW ================= */}
-      <div className="border rounded-lg px-4 pb-4 bg-gray-50">
-        <h3 className="pb-2 border-b font-bold">
-          Entity Overview
-        </h3>
+      {(hasValue(person?.A_ID || person?.ID) ||
+        hasValue(person?.uid || person?.ID) ||
+        hasValue(person?.SDNTYPE || person?.SDN_TYPE) ||
+        hasValue(person?.FIRST_NAME) ||
+        hasValue(person?.LAST_NAME) ||
+        hasValue(aliases)) && (
 
-        <div className="grid grid-cols-2 gap-x-12 gap-y-4 pt-3 text-sm">
-          <Field label="A ID" value={person?.A_ID || person?.ID} />
-          <Field label="ID" value={person?.uid || person?.ID} />
-          <Badge label="SDN TYPE" value={person?.SDNTYPE || person?.SDN_TYPE} />
-        </div>
-      </div>
+        <div className="border border-gray-300 rounded pt-4 pb-4 bg-white shadow-lg">
+          <h3 className="pl-5 pb-3 border-b font-bold">
+            Entity Overview
+          </h3>
 
-      {/* ================= NAME ================= */}
-      <DividerTitle title="NAME INFORMATION" />
-
-      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm">
-        <Field label="FIRST NAME" value={person?.FIRST_NAME} />
-        <Field label="LAST NAME" value={person?.LAST_NAME} />
-        <Field label="ALIASES" value={aliases} />
-      </div>
-
-      {/* ================= PERSONAL ================= */}
-      <DividerTitle title="PERSONAL INFORMATION" />
-
-      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm">
-        <Field label="DATE OF BIRTH" value={dob} />
-        <Field label="CITIZENSHIP" value={citizenship} />
-        <Field label="PLACE OF BIRTH" value={birthPlace} />
-      </div>
-
-      {/* ================= ID LIST ================= */}
-      <DividerTitle title="ID LIST" />
-
-      <div className="space-y-3 text-sm">
-        {Array.isArray(ids) && ids.length > 0 ? (
-          ids.map((item, i) => (
-            <div key={i}>
-              <span className="text-gray-400 font-bold text-xs">
-                {item.idType}
-              </span>
-
-              <div className="text-gray-800 font-bold break-words">
-                {item.idNumber || "NULL"}
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-gray-800 font-bold">
-            NULL
+          <div className="grid grid-cols-2 gap-x-10 gap-y-5 pt-3 pl-5 pr-5 text-sm">
+            <Field label="A ID" value={person?.A_ID || person?.ID} />
+            <Field label="ID" value={person?.uid || person?.ID} />
+            <Badge label="SDN TYPE" value={person?.SDNTYPE || person?.SDN_TYPE} />
+            <Field label="FIRST NAME" value={person?.FIRST_NAME} />
+            <Field label="LAST NAME" value={person?.LAST_NAME} />
+            <Field label="ALIASES" value={aliases} />
           </div>
+        </div>
+      )}
+
+      <div className="bg-white p-5 rounded border border-gray-300 shadow-lg">
+
+        {/* ================= PERSONAL ================= */}
+        {(hasValue(dob) || hasValue(citizenship) || hasValue(birthPlace)) && (
+          <>
+            <DividerTitle title="PERSONAL INFORMATION" />
+
+            <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-sm">
+              <Field label="DATE OF BIRTH" value={dob} />
+              <Field label="CITIZENSHIP" value={citizenship} />
+              <Field label="PLACE OF BIRTH" value={birthPlace} />
+            </div>
+          </>
         )}
+
+        {/* ================= ID LIST ================= */}
+        {Array.isArray(ids) && ids.length > 0 && (
+          <>
+            <DividerTitle title="ID LIST" />
+
+            <div className="space-y-4 text-sm">
+              {ids.map((item, i) => (
+                <div key={i} className="border-b pb-2">
+                  <span className="text-gray-400 text-xs uppercase block mb-1">
+                    {item.idType}
+                  </span>
+
+                  <div className="text-gray-800 font-bold break-words">
+                    {item.idNumber}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ================= ADDRESS ================= */}
+        {hasValue(address) && (
+          <>
+            <DividerTitle title="ADDRESS INFORMATION" />
+
+            <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-sm">
+              <Field label="ADDRESS" value={address} className="col-span-2" />
+            </div>
+          </>
+        )}
+
+        {/* ================= SANCTIONS ================= */}
+        {(hasValue(program) ||
+          hasValue(person?.REMARKS) ||
+          hasValue(person?.INSERTED_ON) ||
+          hasValue(person?.UPDATED_ON)) && (
+          <>
+            <DividerTitle title="SANCTIONS INFORMATION" />
+
+            <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-sm">
+              <Field label="PROGRAM LIST" value={program} />
+              <Field label="REMARKS" value={person?.REMARKS} />
+              <Field label="INSERTED ON" value={person?.INSERTED_ON} />
+              <Field label="UPDATED ON" value={person?.UPDATED_ON} />
+            </div>
+          </>
+        )}
+
+        {/* ================= OTHER INFORMATION ================= */}
+        {hasValue(person?.REMARKS) && (
+          <>
+            <DividerTitle title="OTHER INFORMATION" />
+
+            <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-sm">
+              <Field label="REMARKS" value={person?.REMARKS} className="col-span-2" />
+            </div>
+          </>
+        )}
+
       </div>
-
-      {/* ================= ADDRESS ================= */}
-      <DividerTitle title="ADDRESS INFORMATION" />
-
-      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm">
-        <Field label="ADDRESS" value={address} />
-      </div>
-
-      {/* ================= SANCTIONS ================= */}
-      <DividerTitle title="SANCTIONS INFORMATION" />
-
-      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm">
-        <Field label="PROGRAM LIST" value={program} />
-        <Field label="REMARKS" value={person?.REMARKS} />
-      </div>
-
     </div>
   );
 }
@@ -93,71 +128,65 @@ function DividerTitle({ title }) {
   return (
     <div className="flex items-center gap-4 my-4">
       <div className="flex-1 h-[1px] bg-blue-200"></div>
+
       <h3 className="text-xs font-bold text-blue-500 tracking-wide">
         {title}
       </h3>
+
       <div className="flex-1 h-[1px] bg-blue-200"></div>
     </div>
   );
 }
 
-/* ✅ ALWAYS SHOW FIELD (even if missing in JSON) */
-function Field({ label, value }) {
-
-  let displayValue = value;
-
+function Field({ label, value, className = "" }) {
   if (
     value === undefined ||
     value === null ||
     value === "" ||
     value === "[NULL]"
   ) {
-    displayValue = "NULL";
+    return null;
   }
 
   return (
-    <div>
-      <span className="text-gray-400 text-xs">
-        {label} :
+    <div className={`${className}`}>
+      <span className="text-gray-400 text-xs uppercase block mb-1">
+        {label}
       </span>
 
-      <div className="text-gray-800 font-bold break-words whitespace-pre-line">
-        {String(displayValue)}
+      <div className="text-gray-800 font-bold break-words whitespace-pre-line leading-relaxed">
+        {String(value)}
       </div>
     </div>
   );
 }
 
-/* ✅ Badge also shows NULL */
 function Badge({ label, value }) {
-
-  let displayValue = value;
-
   if (
     value === undefined ||
     value === null ||
     value === "" ||
     value === "[NULL]"
   ) {
-    displayValue = "NULL";
+    return null;
   }
 
   return (
     <div>
-      <span className="text-gray-400 text-xs">
-        {label} :
+      <span className="text-gray-400 text-xs uppercase block mb-1">
+        {label}
       </span>
 
       <div className="inline-block px-2 py-1 font-bold text-xs rounded bg-blue-100 text-blue-600">
-        {displayValue}
+        {value}
       </div>
     </div>
   );
 }
 
 /* =========================================================
-   🔥 UNIVERSAL EXTRACTORS
-   ========================================================= */
+   UNIVERSAL EXTRACTORS
+========================================================= */
 
 function parseFullData(person) {
   try {

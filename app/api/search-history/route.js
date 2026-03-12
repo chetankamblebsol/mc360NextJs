@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
-
 export async function POST(req) {
   try {
 
@@ -13,17 +12,40 @@ export async function POST(req) {
       );
     }
 
-    await pool.query(
-      `INSERT INTO search_history 
-      (username, searched_text, type, source) 
-      VALUES (?, ?, ?, ?)`,
-      [null, searched_text.trim(), type, source]
+    const keyword = searched_text.trim();
+
+    // 🔎 check duplicate
+    const [rows] = await pool.query(
+      `SELECT id FROM search_history 
+       WHERE searched_text = ? 
+       AND IFNULL(type,'') = IFNULL(?, '')
+       AND IFNULL(source,'') = IFNULL(?, '') 
+       LIMIT 1`,
+      [keyword, type, source]
     );
 
-    return NextResponse.json(
-      { message: "Search saved" },
-      { status: 201 }
-    );
+    if (rows.length === 0) {
+
+      await pool.query(
+        `INSERT INTO search_history 
+        (username, searched_text, type, source) 
+        VALUES (?, ?, ?, ?)`,
+        ['', keyword, type, source]
+      );
+
+    } else {
+
+      // optional: update timestamp
+      await pool.query(
+        `UPDATE search_history 
+         SET searched_at = NOW() 
+         WHERE id = ?`,
+        [rows[0].id]
+      );
+
+    }
+
+    return NextResponse.json({ message: "Search saved" });
 
   } catch (error) {
 

@@ -30,7 +30,7 @@ export async function GET(request) {
   try {
    
     const [rows] = await db.query(
-      "CALL SearchAllView(?,?,?,?,?)",
+      "CALL SearchAllTable(?,?,?,?,?)",
       [name, type, source, limit, offset]
     );
 
