@@ -170,14 +170,27 @@ useEffect(() => {
 
       <Sidebar isDetailsOpen={isOpenDetails} />
 
-      <main className="flex-1 flex flex-col">
+    
+<main className="flex-1 flex flex-col min-w-0">
+
+
 
         <Infobar />
 
-        <div className="flex flex-1 overflow-hidden">
+<div className="flex flex-1 overflow-hidden min-w-0">
+
 
           {/* LEFT PANEL */}
-          <div className={`${selectedRecord ? 'w-[60%]' : 'w-full'} p-6 bg-gray-100 flex flex-col transition-all duration-300 overflow-hidden`}>
+     
+<div
+  className={`${
+  
+selectedRecord ? 'flex-[1.3]' : 'flex-1'
+
+
+  } p-6 bg-gray-100 flex flex-col transition-all duration-300 overflow-hidden`}
+>
+
 
             <h1 className="text-xl font-semibold mb-1">Global Sanctions Screening</h1>
 
@@ -252,7 +265,12 @@ useEffect(() => {
             {(results.length > 0 || loading || searchInput) && (
               <div className="mt-6 bg-white rounded shadow flex flex-col flex-1 overflow-hidden">
 
-                <div className="overflow-y-auto flex-1 border border-gray-300" onScroll={handleScroll}>
+<div
+  className="overflow-auto flex-1 border border-gray-300 min-w-0"
+  onScroll={handleScroll}
+>
+
+
                   <table className="w-full text-sm border border-gray-100">
 
                     <thead className="bg-gray-50 sticky top-0 text-xs uppercase text-gray-600 z-[0] ">
@@ -370,8 +388,14 @@ useEffect(() => {
           </div>
 
           {/* RIGHT PANEL */}
-          {selectedRecord && (
-            <div className="w-1/2 border-l border-gray-400 bg-white overflow-y-auto">
+  
+{selectedRecord && (
+
+<div className="flex-[0.9] border-l border-gray-400 bg-white overflow-y-auto min-w-0">
+
+
+
+
               <DetailsModal
                 table={selectedRecord.table}
                 id={selectedRecord.id}
